@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import sys
 import rospy
 from std_msgs.msg import Bool
-from mars_nav.msg import custom
+from imega_arduino.msg import custom
 from nav_msgs.msg import Odometry
 from vision_msgs.msg import Detection2DArray
 from tf.transformations import euler_from_quaternion
@@ -27,14 +28,14 @@ class Commander:
         self.fid_id = None
 
         self.is_charging = False
-        self.need_charging = False
+        self.need_charging = True 
         self.init_fixed_nav_waypoints()
         rospy.Subscriber("/geonav_odom", Odometry, self.gps_position)
         rospy.Subscriber("/plugged", Bool, self.charging)
         rospy.Subscriber("/battery_empty", Bool, self.battery_monitor)
-        rospy.Subscriber("/fiducials_transforms",
+        rospy.Subscriber("/stag_ros/markers_array",
                          Detection2DArray, self.fid_position)
-        self.vel_maister = rospy.Publisher("/vel_cmd", custom, queue_size=1)
+        self.vel_maister = rospy.Publisher("/vel_cmd", custom, queue_size=100)
 
     def init_fixed_nav_waypoints(self):
         self.waypoints = {
@@ -59,7 +60,9 @@ class Commander:
         qy = msg.pose.pose.orientation.y
         qz = msg.pose.pose.orientation.z
         qw = msg.pose.pose.orientation.w
-        (roll, pitch, self.gps_yaw) = euler_from_quaternion(qx, qy, qz, qw)
+        (roll, pitch, self.gps_yaw) = euler_from_quaternion((qx, qy, qz, qw))
+
+	print("got GPS position")
 
     def fid_position(self, msg):
         fiducials = [
@@ -74,14 +77,15 @@ class Commander:
         qy = fiducial.pose.pose.orientation.y
         qz = fiducial.pose.pose.orientation.z
         qw = fiducial.pose.pose.orientation.w
-        (roll, pitch, self.fid_yaw) = euler_from_quaternion(qx, qy, qz, qw)
+        (roll, pitch, self.fid_yaw) = euler_from_quaternion((qx, qy, qz, qw))
 
+	print("Got fiducial pose")
         self.fid_pose = True
 
     def get_waypoints(self, fid_id, x, y):
         '''Transforms robot current pose to the frame of waypoint'''
         transform_waypoints = []
-        waypoints = self.waypoints[fid_id] if fid_id else [[0, 0]]
+        waypoints = self.waypoints[str(fid_id)] if fid_id else [[0, 0]]
         for point in waypoints:
             x_r = point[0]
             y_r = point[1]
@@ -99,7 +103,7 @@ class Commander:
                 x = waypoint[0]
                 y = waypoint[1]
                 dist_e = int(sqrt(x*x + y*y))
-                yaw_e = int(rad2deg(y, x))
+                yaw_e = int(rad2deg(atan2(y, x)))
                 msg = custom()
                 # TODO: Use proportional controller and apply saturation function [0, 5] ~ undocking will be negative velocity
                 speed = 2
@@ -107,37 +111,62 @@ class Commander:
                 msg.data.append(dist_e)
                 msg.data.append(yaw_e)
 
+		print("Sending goals to the Arduino")
                 self.vel_maister.publish(msg)
 
     def run(self):
         '''
         Main loop
         '''
-        r = rospy.Rate(2)
+        r = rospy.Rate(0.1)
         try:
             while not rospy.is_shutdown():
+                r.sleep()
                 # Robots need charging
+                id = None
+		waypoints = None
                 if not self.is_charging and self.need_charging:
+		    print("NEEDS CHARGING")
                     # Get position
                     if self.fid_pose:
                         x = self.fid_x
                         y = self.fid_y
                         id = self.fid_id
+			print("using fid pose")
                     else:
                         x = self.gps_x
                         y = self.gps_y
-                        id = None
+			print("using gps pose")
 
-                    waypoints = self.get_waypoints(id, x, y)
+		    if id:
+                    	waypoints = self.get_waypoints(id, x, y)
+		    else:
+			print("ID of fid is None!")
+			continue
+		  
+		    if waypoints:
+                    	self.send_goals(waypoints)
+		    else:
+			print("Waypoints are None!")
+			continue
 
-                    self.send_goals(waypoints)
-
-                # Follow a sequence of predefined points on the field(of some shape)
+                # Back away from the charging station 
                 elif not self.need_charging:
+		    print("BACKING AWAYY!!")
                     x = 5.0
                     y = 5.0
                     yaw = 0
-                    self.send_goals(x, y, yaw)
+
+		    if id:
+                    	waypoints = self.get_waypoints(id, x, y)
+		    else:
+			print("ID of fid is None!")
+			continue
+		    if waypoints:
+                    	self.send_goals(waypoints)
+		    else:
+			print("Waypoints are None!")
+			continue
 
                 else:  # is_charging = True
                     print("Commander: Robot is charging")
@@ -146,7 +175,6 @@ class Commander:
 
                     # Update flag
                 self.fid_pose = False
-                r.sleep()
 
         except rospy.ROSInterruptException:
             rospy.logerr("GroundFiducials: Script interrupted.")

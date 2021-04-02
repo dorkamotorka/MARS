@@ -1,7 +1,21 @@
+<!--
+1. catkin_make
+2. catkin_make imega_arduino_firmware_hello-upload
+3. roslaunch mars_nav main.launch
+-->
+
 <launch>
 
-  <node pkg="rosserial_python" type="serial_node.py" name="rosserial_lipo" output="screen">
-  <param name="~port" value="/dev/ttyACM0" />
-  </node>
+  <!-- Run camera and detection software -->
+  <include file="$(find mars_detect)/launch/stag_detect.launch" />
+
+  <!-- Run communication with Arduino -->
+  <include file="$(find mars_nav)/launch/rosserial.launch" />
+
+  <!-- Run GPS node -->
+  <include file="$(find gps_module)/launch/gps_loc.launch" />
+
+  <!-- Run Navigation commander -->
+  <node name="mars_nav" pkg="mars_nav" type="commander.py" output="screen" required="true" />
 
 </launch>

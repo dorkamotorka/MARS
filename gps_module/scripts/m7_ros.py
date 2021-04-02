@@ -26,7 +26,7 @@ try:
 
             if data[0:6] == "$GPRMC":
                 msg = pynmea2.parse(data)
-                # print(dir(msg))
+                print(dir(msg))
                 lat = msg.latitude
                 # print("Latitude: %s" % str(lat))
                 lng = msg.longitude
@@ -38,13 +38,11 @@ try:
                 # TODO: Need orientation to know in which direction to go!
                 msg.pose.pose.position.x = lng  # dec. degrees!
                 msg.pose.pose.position.y = lat  # dec. degrees!
+                msg.pose.pose.position.z = 35.0  # meters!
                 msg.pose.pose.orientation.x = 0
                 msg.pose.pose.orientation.y = 0
                 msg.pose.pose.orientation.z = 0
                 msg.pose.pose.orientation.w = 1
-
-                msg.latitude = lat
-                msg.longitude = lng
 
                 gps.publish(msg)
 

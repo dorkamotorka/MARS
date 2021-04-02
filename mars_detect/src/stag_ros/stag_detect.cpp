@@ -146,7 +146,7 @@ void StagNode::imageCallback(const sensor_msgs::ImageConstPtr &msg) {
 
     // For each marker in the list
     if (markers.size() > 0) {
-      ROS_INFO("STag: Marker detected");
+      //ROS_INFO("STag: Marker detected");
       // Create markers msg
       std::vector<cv::Mat> tag_pose(tags.size(), cv::Mat::zeros(3, 4, CV_64F));
 
@@ -195,9 +195,7 @@ void StagNode::imageCallback(const sensor_msgs::ImageConstPtr &msg) {
       auto marker_tf = tf::Transform(rotQ, tfVec);
       Common::publishTransform(marker_tf, markersPub, msg->header,
 			       tag_tf_prefix, tags[tag_index].frame_id, publish_tf);
-    } else { 
-	ROS_WARN("No markers detected"); 
-    }
+    }  
   }
 }
 

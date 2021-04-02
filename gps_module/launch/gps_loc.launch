@@ -5,10 +5,9 @@
   <node pkg="geonav_transform" type="geonav_transform_node" name="geonav_transform_node" clear_params="true" output="screen">
     <!-- Datum(origin) as latitude, longitude [decimal deg.], yaw [ENU, degrees] -->
     <!-- Origin where charging station is -->
-    <rosparam param="datum">[36.6137, -121.912, 0.0]</rosparam>
+    <rosparam param="datum">[52.5137, 13.3231, 0.0]</rosparam>
   </node>
 
-  <node pkg="gps_module" type="gps_7m.py" name="gps_7m.py" />
-
+  <node name="gps_module" pkg="gps_module" type="m7_ros.py" output="screen" required="true" />
 
 </launch>
