@@ -1,0 +1,7 @@
+setup.bash
+.vscode
+.idea
+build
+data/*
+scripts/launch_bundle.sh
+cmake-*
