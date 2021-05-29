@@ -4,12 +4,30 @@
 
 ## Dependencies
 
-Before running GPS you type in the terminal:
+Before running GPS we should install dependencies:
 
 	sudo apt-get install gpsd gpsd-clients 
 	pip install pynmea2
 
-## Verification of Neo-6M
+and some ROS dependencies:
+	
+	sudo apt install ros-kinetic-gps-common
+
+## Run GPS Software
+
+In order to retreive GPS data, run:
+
+	rosrun gps_module m7_ros.py
+
+and in the other terminal, type:
+
+	rostopic echo /gps_data
+
+You should see stream of GPS data.
+
+## Verification of GPS Boards
+
+### Neo-6M
 
 In order to verify operation of the GPS Module:
 
@@ -23,7 +41,7 @@ In order to verify operation of the GPS Module:
 
 	cgps -s
 
-## Verification of Neo-7M
+### Neo-7M
 
 In order to verify operation of the GPS Module:
 
@@ -41,3 +59,18 @@ NOTE: Lots of tutorials are mentioning to output data with:
 	sudo cat /dev/ttyAMA0
 
 Which was empty for both of my modules in my case. 
+
+## Debug information
+
+If you get error:
+
+	[Errno 16] could not open port /dev/ttyAMA0: [Errno 16] Device or resource busy: '/dev/ttyAMA0'
+
+Try calling:
+	
+	sudo lsof /dev/ttyAMA0
+
+Which should tell which Process and its PID is using the port. You should kill it with:
+
+	kill -9 <PID>
+
