@@ -1,20 +1,23 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>gps_module</name>
+  <name>mars_nav</name>
   <version>0.0.0</version>
-  <description>The gps_module package</description>
+  <description>The mars_nav package</description>
 
   <maintainer email="tp4348@student.uni-lj.si">Teodor Janez Podobnik</maintainer>
 
   <license>BSD</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>nav_msgs</build_depend>
   <build_depend>rospy</build_depend>
-  <build_export_depend>nav_msgs</build_export_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>topic_tools</build_depend>
   <build_export_depend>rospy</build_export_depend>
-  <exec_depend>nav_msgs</exec_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <build_export_depend>topic_tools</build_export_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>topic_tools</exec_depend>
 
   <export>
   </export>

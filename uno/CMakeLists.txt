@@ -8,6 +8,18 @@ find_package(catkin REQUIRED COMPONENTS
   rosserial_client
   sensor_msgs
   std_msgs
+  mars_msg
+  message_generation
+)
+
+add_message_files(
+   FILES
+   custom.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
 )
 
 catkin_package()

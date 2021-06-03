@@ -1,0 +1,5 @@
+<launch>
+
+  <node name = "topic_tools_mux" pkg = "topic_tools" type = "mux" args="output_topic    input_topic1    input_topic2   mux:= mux_cmdvel " />
+
+</launch>

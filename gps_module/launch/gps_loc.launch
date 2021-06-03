@@ -1,0 +1,14 @@
+<launch>
+
+  <env name="ROSCONSOLE_CONFIG_FILE" value="$(find geonav_transform)/config/custom_rosconsole.conf"/>
+
+  <node pkg="geonav_transform" type="geonav_transform_node" name="geonav_transform_node" clear_params="true" output="screen">
+    <!-- Datum(origin) as latitude, longitude [decimal deg.], yaw [ENU, degrees] -->
+    <!-- Origin where charging station is -->
+    <rosparam param="datum">[36.6137, -121.912, 0.0]</rosparam>
+  </node>
+
+  <node pkg="gps_module" type="gps_7m.py" name="gps_7m.py" />
+
+
+</launch>
