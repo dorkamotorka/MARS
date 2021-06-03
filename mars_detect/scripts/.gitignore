@@ -1,0 +1,6 @@
+.vscode/
+*.pyc 
+STag/.vscode/
+STag/HD*/
+!STag/HD/
+STag/pack-*
