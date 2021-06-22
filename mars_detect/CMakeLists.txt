@@ -69,18 +69,11 @@ add_library(stag_core
   include/stag_ros/load_yaml_tags.h
 )
 
-add_executable(stag_detect src/stag_ros/stag_detect.cpp)
-add_dependencies(stag_detect ${catkin_EXPORTED_TARGETS})
+add_executable(mars_detect src/stag_ros/stag_detect.cpp)
+add_dependencies(mars_detect ${catkin_EXPORTED_TARGETS})
 target_link_libraries(stag_core ${OpenCV_LIBS})
-target_link_libraries(stag_detect ${catkin_LIBRARIES} ${OpenCV_LIBS} stag_core)
+target_link_libraries(mars_detect ${catkin_LIBRARIES} ${OpenCV_LIBS} stag_core)
 
-
-add_executable(mars_detect src/aruco_detect.cpp)
-
-add_dependencies(mars_detect ${${PROJECT_NAME}_EXPORTED_TARGETS}
-                 ${catkin_EXPORTED_TARGETS})
-
-target_link_libraries(mars_detect ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 #############
 ## Install ##
@@ -102,7 +95,7 @@ install(DIRECTORY cfg/
 )
 
 install(TARGETS
-  stag_detect
+  mars_detect
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

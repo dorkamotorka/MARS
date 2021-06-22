@@ -1,11 +1,15 @@
 <launch>
 
+    <include file="$(find raspicam_node)/launch/camerav2_410x308_30fps.launch" >
+	<arg name="camera_frame_id" value="raspicam_sensor"/>
+    </include>
+
     <!--Start Stag Node-->
-    <node name="stag_detect" pkg="breadcrumb_detect" type="stag_detect" output="screen" required="true">
+    <node name="stag_detect" pkg="mars_detect" type="stag_detect" output="screen" required="true">
         <!-- Place the correct yaml file here-->
-        <rosparam command="load" file="$(find breadcrumb_detect)/cfg/single.yaml"/>
+        <rosparam command="load" file="$(find mars_detect)/cfg/single.yaml"/>
         <!-- Place the correct bundle file here-->
-        <rosparam command="load" file="$(find breadcrumb_detect)/cfg/single_config.yaml"/>
+        <rosparam command="load" file="$(find mars_detect)/cfg/single_config.yaml"/>
     </node>
 
 </launch>

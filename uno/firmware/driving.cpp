@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <ros.h>
 #include <Adafruit_PWMServoDriver.h>
-#include <mars_msg/custom.h>
+#include <imega_arduino/custom.h>
 
 // Speicher für die Befehle (Beschreibung s. union Befehle)(Der erste Befehl (Arrayplatz=0) wird zuerst verarbeitet)
 int vsoll[20] =     {10,   0,    0,    0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Speed of the faster wheel [in 1 mm per second]
@@ -201,7 +201,7 @@ long vregler() {
 }
 
 /* ROS Callback */
-void commanderCB(const mars_msg::custom & msg) {
+void commanderCB(const imega_arduino::custom & msg) {
 	// Wait 10s such that everything is connected
 	int speed = msg.data[0] * 1000; //[mm/s] ~ max 0.5m/s
         printf("Speed: %d", speed);
@@ -218,7 +218,7 @@ void commanderCB(const mars_msg::custom & msg) {
 
 /* ROS variables */
 ros::NodeHandle nh;
-ros::Subscriber<mars_msg::custom> controller("/vel_cmd", &commanderCB);
+ros::Subscriber<imega_arduino::custom> controller("/vel_cmd", &commanderCB);
 
 /* Setup function */
 void setup()

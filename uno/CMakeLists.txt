@@ -8,7 +8,6 @@ find_package(catkin REQUIRED COMPONENTS
   rosserial_client
   sensor_msgs
   std_msgs
-  mars_msg
   message_generation
 )
 
@@ -34,6 +33,11 @@ rosserial_configure_client(
   DIRECTORY firmware
   TOOLCHAIN_FILE ${ROSSERIAL_ARDUINO_TOOLCHAIN}
 )
+
+#add_executable(hello firmware/driving.cpp)
+#add_dependencies(hello ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#                 ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(hello ${catkin_LIBRARIES})
 
 rosserial_add_client_target(firmware hello ALL)
 rosserial_add_client_target(firmware hello-upload)
