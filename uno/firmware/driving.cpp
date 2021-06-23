@@ -203,17 +203,12 @@ long vregler() {
 /* ROS Callback */
 void commanderCB(const imega_arduino::custom & msg) {
 	// Wait 10s such that everything is connected
-	int speed = msg.data[0] * 1000; //[mm/s] ~ max 0.5m/s
-        printf("Speed: %d", speed);
-	int dist = msg.data[1] * 1000;
-        printf("Distance: %d", dist);
+	int speed = msg.data[0]; //[mm/s] ~ max 0.5m/s
+	int dist = msg.data[1];
 	int angle = msg.data[2] ; // degress
-        printf("Angle: %d", angle);
 	// priority - priority of the command
 	// delete - delete all commands with lower priority
-	if ((millis() >= 10000)) {
-    		driveAngle(speed, dist, angle, 5, 1); // speed, distance[mm], angle(clockwise from above), priority, delete
-	}
+    	driveAngle(speed, dist, angle, 5, 1); // speed, distance[mm], angle(clockwise from above), priority, delete
 }
 
 /* ROS variables */
@@ -225,7 +220,6 @@ void setup()
 {
   // Beginn of needed functions in the setup().
   Wire.begin(); // Hauptcontroller hat die Adresse 8 dies ist auch das Führugnsbyte
-  delay (2000);
   nh.initNode();
   nh.subscribe(controller);
 }
@@ -236,8 +230,8 @@ void loop() {
   // DO NOT REMOVE
   // Beginn of needed functions in the loop(). This part of code need to be executed as often as possible. A frequency of 100Hz is great.
   if ((millis() >= (letztesMal + Zeitbedarf)) && (fertig != 1)) {
-    letztesMal = millis();
-    Zeitbedarf = vregler(); // This function manages/updates command buffer
+   letztesMal = millis();
+   Zeitbedarf = vregler(); // This function manages/updates command buffer
   }
   // DO NOT REMOVE
 

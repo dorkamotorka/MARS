@@ -26,7 +26,7 @@ try:
 
             if data[0:6] == "$GPRMC":
                 msg = pynmea2.parse(data)
-                print(dir(msg))
+                #print(dir(msg))
                 lat = msg.latitude
                 # print("Latitude: %s" % str(lat))
                 lng = msg.longitude

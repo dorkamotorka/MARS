@@ -5,7 +5,7 @@
     </include>
 
     <!--Start Stag Node-->
-    <node name="stag_detect" pkg="mars_detect" type="stag_detect" output="screen" required="true">
+    <node name="mars_detect" pkg="mars_detect" type="mars_detect" output="screen" required="true">
         <!-- Place the correct yaml file here-->
         <rosparam command="load" file="$(find mars_detect)/cfg/single.yaml"/>
         <!-- Place the correct bundle file here-->

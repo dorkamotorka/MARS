@@ -13,6 +13,8 @@ from math import atan2, sqrt
 def rad2deg(rad):
     return rad * 180.0 / 3.14159
 
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
 
 class Commander:
     def __init__(self):
@@ -85,7 +87,8 @@ class Commander:
     def get_waypoints(self, fid_id, x, y):
         '''Transforms robot current pose to the frame of waypoint'''
         transform_waypoints = []
-        waypoints = self.waypoints[str(fid_id)] if fid_id else [[0, 0]]
+        waypoints = self.waypoints[str(fid_id)] if fid_id else [[1, 1]]
+	print(waypoints)
         for point in waypoints:
             x_r = point[0]
             y_r = point[1]
@@ -102,11 +105,13 @@ class Commander:
             for waypoint in waypoints:
                 x = waypoint[0]
                 y = waypoint[1]
-                dist_e = int(sqrt(x*x + y*y))
+                dist_e = clamp(int(sqrt(x*x + y*y)), -65535, 65535)
                 yaw_e = int(rad2deg(atan2(y, x)))
+		print("dist_e: ", dist_e)
+		print("yaw: ", yaw_e)
+                # TODO: Use proportional controller and apply saturation function [-5000, 5000] ~ undocking will be negative velocity
+                speed = clamp(dist_e, -5000, 5000) 
                 msg = custom()
-                # TODO: Use proportional controller and apply saturation function [0, 5] ~ undocking will be negative velocity
-                speed = 2
                 msg.data.append(speed)
                 msg.data.append(dist_e)
                 msg.data.append(yaw_e)
@@ -125,6 +130,7 @@ class Commander:
                 # Robots need charging
                 id = None
 		waypoints = None
+		print("before ifs")
                 if not self.is_charging and self.need_charging:
 		    print("NEEDS CHARGING")
                     # Get position
@@ -141,9 +147,7 @@ class Commander:
 		    if id:
                     	waypoints = self.get_waypoints(id, x, y)
 		    else:
-			print("ID of fid is None!")
-			continue
-		  
+			waypoints = self.get_waypoints(None, x, y)
 		    if waypoints:
                     	self.send_goals(waypoints)
 		    else:
@@ -160,8 +164,7 @@ class Commander:
 		    if id:
                     	waypoints = self.get_waypoints(id, x, y)
 		    else:
-			print("ID of fid is None!")
-			continue
+			waypoints = self.get_waypoints(None, x, y)
 		    if waypoints:
                     	self.send_goals(waypoints)
 		    else:
