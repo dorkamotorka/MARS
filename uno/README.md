@@ -19,3 +19,9 @@ Steps to get it running:
 4. Visualize data in other terminal with:
 
         rostopic echo /chatter
+        
+        
+        
+Compile time issue, solve with:
+
+        sudo find . -exec touch {} \;
