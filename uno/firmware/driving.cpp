@@ -2,6 +2,7 @@
 #include <ros.h>
 #include <Adafruit_PWMServoDriver.h>
 #include <imega_arduino/custom.h>
+#include <std_msgs/Int8.h>
 
 // Speicher für die Befehle (Beschreibung s. union Befehle)(Der erste Befehl (Arrayplatz=0) wird zuerst verarbeitet)
 int vsoll[20] =     {10,   0,    0,    0,    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; // Speed of the faster wheel [in 1 mm per second]
@@ -212,8 +213,12 @@ void commanderCB(const imega_arduino::custom & msg) {
 }
 
 /* ROS variables */
+std_msgs::Int8 volt_msg;
 ros::NodeHandle nh;
 ros::Subscriber<imega_arduino::custom> controller("/vel_cmd", &commanderCB);
+ros::Publisher volt("/battery_voltage", &volt_msg);
+int analogPin = A0;
+int val = 0;
 
 /* Setup function */
 void setup()
@@ -222,6 +227,7 @@ void setup()
   Wire.begin(); // Hauptcontroller hat die Adresse 8 dies ist auch das Führugnsbyte
   nh.initNode();
   nh.subscribe(controller);
+  nh.advertise(volt);
 }
 
 /* Main loop */
@@ -234,6 +240,11 @@ void loop() {
    Zeitbedarf = vregler(); // This function manages/updates command buffer
   }
   // DO NOT REMOVE
+  val = analogRead(analogPin);
+  if (val > 0) {
+  	volt_msg.data = val;
+  	volt.publish(&volt_msg);
+  }
 
   nh.spinOnce();
 }

@@ -7,7 +7,7 @@
 <launch>
 
   <!-- Run camera and detection software -->
-  <include file="$(find mars_detect)/launch/stag_detect.launch" />
+  <!-- <include file="$(find mars_detect)/launch/stag_detect.launch" /> -->
 
   <!-- Run communication with Arduino -->
   <include file="$(find mars_nav)/launch/rosserial.launch" />
@@ -17,5 +17,8 @@
 
   <!-- Run Navigation commander -->
   <node name="mars_nav" pkg="mars_nav" type="commander.py" output="screen" required="true" />
+
+  <!-- Run battery and bumpers -->
+  <node name="bot_firmware" pkg="mars_nav" type="bot_firmware.py" output="screen" required="true" />
 
 </launch>
