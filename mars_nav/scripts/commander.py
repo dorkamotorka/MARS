@@ -21,14 +21,14 @@ class Commander:
     CHARGING = 2   
     CHARGED = 3
     GO_AWAY = 4
-    NORMAL = 5
+    #NORMAL = 5
 
     CHARGING_STATION = [[0, 0]]
+    FIELD_WAYPOINT = [[5, 5]]
     MARKER1_MAN = [[1, 1], [0, 0]]
     MARKER2_MAN = [[1, 1], [0, 0]]
     MARKER3_MAN = [[1, 1], [0, 0]]
-    MARKER4_MAN = [[1, 1], [0, 0]]
-    FIELD_POSE = [[5, 5]]
+    MARKER4_MAN = [[0, 0]]
 
     def __init__(self):
         rospy.init_node('mars_commander', anonymous=False)
@@ -52,9 +52,10 @@ class Commander:
 
     def init_fixed_nav_waypoints(self):
         self.waypoints = {
-            '1': [[0, 1], [0, 0]],
-            '2': [[1, 0], [0, 1], [0, 0]],
-            '3': [[-1, 0], [0, 1], [0, 0]],
+            '1': self.MARKER1_MAN,
+            '2': self.MARKER2_MAN,
+            '3': self.MARKER3_MAN,
+            '4': self.MARKER4_MAN,
         }
 
     # Triggers the robot to start driving to the charging station
@@ -91,11 +92,11 @@ class Commander:
 	print("Got fiducial pose")
         self.fid_pose = True
 
-    def get_waypoints(self, fid_id, x, y):
+    def get_waypoints(self, fid_id, x, y, in_way): # robot pose and goal pose
         '''Transforms robot current pose to the frame of waypoint'''
         transform_waypoints = []
-        waypoints = self.waypoints[str(fid_id)] if fid_id else [[1, 1]]
-	#print(waypoints)
+        waypoints = self.waypoints[str(fid_id)] if fid_id else in_way
+	print(waypoints)
         for point in waypoints:
             x_r = point[0]
             y_r = point[1]
@@ -106,7 +107,7 @@ class Commander:
 
         return transform_waypoints
 
-    def send_goals(self, waypoints):
+    def send_goals(self, waypoints, slow):
         if waypoints:
             # Goals are nested in a queue of length 20
             for waypoint in waypoints:
@@ -118,12 +119,14 @@ class Commander:
 		#print("yaw: ", yaw_e)
                 # TODO: Use proportional controller and apply saturation function [-5000, 5000] ~ undocking will be negative velocity
                 speed = clamp(dist_e, -5000, 5000) 
+		if slow:
+		    speed = 10
                 msg = custom()
                 msg.data.append(speed)
                 msg.data.append(dist_e)
                 msg.data.append(yaw_e)
 
-		#print("Sending goals to the Arduino")
+		print("Sending goals to the Arduino")
                 self.vel_maister.publish(msg)
 
     def run(self):
@@ -135,13 +138,16 @@ class Commander:
             while not rospy.is_shutdown():
                 r.sleep()
                 id = None
+		got_pose = False
 		waypoints = None
                 if self.current_state:
 
+		    # If the robot is charging don't do anything
                     if self.current_state == self.CHARGING:
                         rospy.loginfo('Robot is CHARGING')
                         continue
 
+		    # If the robot needs charging send charging station waypoint (Dont send [0,0] because the waypoints dont get preempted)
                     elif self.current_state == self.NEED_CHARGING:
                         print("NEEDS CHARGING")
                         # Get position
@@ -149,35 +155,54 @@ class Commander:
                             x = self.fid_x
                             y = self.fid_y
                             id = self.fid_id
+			    got_pose = True
                             print("using fid pose")
                         else:
                             x = self.gps_x
                             y = self.gps_y
                             print("using gps pose")
+			    got_pose = True
 
-                        waypoints = self.get_waypoints(id, x, y)
-                        if waypoints:
-                            self.send_goals(waypoints)
-                        else:
-                            print("Waypoints are None!")
-                            continue
+		
+			if got_pose:
+			    waypoints = self.get_waypoints(id, x, y, self.CHARGING_STATION)
+			    if waypoints:
+		                self.send_goals(waypoints, id == 4) # If ID == 4 this is the SMALL marker and we should drive slow!
+			    else:
+			        print("Waypoints are None!")
+		     	        continue
+			else:
+			    rospy.loginfo('Dont have robot pose to plan a path')
+			    continue
 
                     # Back away from the charging station 
                     elif self.current_state == self.GO_AWAY:
-			print('MOVE AWAY!')
-                        x = 5.0
-                        y = 5.0
-                        yaw = 0
 
-                        waypoints = self.get_waypoints(id, x, y)
-                        if waypoints:
-                            self.send_goals(waypoints)
+                        if self.fid_pose:
+                            x = self.fid_x
+                            y = self.fid_y
+                            id = self.fid_id
+			    got_pose = True
+                            print("using fid pose")
                         else:
-                            print("Waypoints are None!")
-                            continue
+                            x = self.gps_x
+                            y = self.gps_y
+                            print("using gps pose")
+			    got_pose = True
+			
+			if got_pose:
+                            waypoints = self.get_waypoints(None, x, y, self.FIELD_WAYPOINT) # ID must be none otherwise it might override field goal with fiducial goal
+                            if waypoints:
+                                self.send_goals(waypoints, False)
+                            else:
+                                print("Waypoints are None!")
+                                continue
+			else:
+			    rospy.loginfo('Dont have robot pose to plan a path')
+			    continue
 
-		    elif self.current_state == self.NORMAL:
-			 print('NORMAL surveying of the field!')
+		    #elif self.current_state == self.NORMAL:
+			# print('NORMAL surveying of the field!')
 
                     # TODO: Need custom maneuvers to move away from the charging station
 
